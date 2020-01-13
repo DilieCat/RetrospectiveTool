@@ -102,6 +102,8 @@ namespace Retrospective_Back_End.Controllers
             {
                 RetroColumn retroColumn = _repo.RetroColumns.FirstOrDefault(x => x.Id == family.RetroColumnId);
 
+                _repo.RemoveRetroFamily(family);
+
                 if (_hubContext.Clients != null)
                 {
                     try
@@ -114,7 +116,6 @@ namespace Retrospective_Back_End.Controllers
                     }
                 }
 
-                _repo.RemoveRetroFamily(family);
                 return family;
             }
         }
