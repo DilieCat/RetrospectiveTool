@@ -19,6 +19,11 @@ namespace Retrospective_Core.Models {
 
         public ICollection<RetroColumn> RetroColumns { get; set; }
 
+        [ForeignKey("RetroUserId")]
+        public int RetroUserId { get; set; }
+
+        public virtual RetroUser RetroUser { get; set; } 
+
         public Retrospective()
         {
             RetroColumns = new List<RetroColumn>();

@@ -158,6 +158,8 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl
 
         public void CleanRetrospective(Retrospective retrospective)
         {
+            
+
             foreach (var rc in retrospective.RetroColumns)
             {
 	            foreach (var rf in rc.RetroFamilies.ToList())

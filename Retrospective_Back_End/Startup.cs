@@ -13,6 +13,10 @@ using Retrospective_Core.Services;
 using Retrospective_EFSQLRetrospectiveDbImpl;
 using Retrospective_EFSQLRetrospectiveDbImpl.Seeds;
 using Retrospective_Back_End.Realtime;
+using Retrospective_Core.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Retrospective_Back_End
 {
@@ -41,8 +45,36 @@ namespace Retrospective_Back_End
             _ = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc(option => option.EnableEndpointRouting = false);
             services.AddDbContext<RetroSpectiveDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration["Data:ConnectionString"]));
+	            options.UseSqlServer(
+		            Configuration["Data:ConnectionString"]));
+
+            services.AddIdentity<RetroUser, RetroRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+            }).AddEntityFrameworkStores<RetroSpectiveDbContext>();
+
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = "https://true-lime.herokuapp.com/",
+                    ValidIssuer = "https://true-lime.herokuapp.com/",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecureKey"))
+                };
+            });
+
             services.AddTransient<IRetroRespectiveRepository, EFRetrospectiveRepository>();
             services.AddControllersWithViews().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             
@@ -75,10 +107,12 @@ namespace Retrospective_Back_End
                 c.RoutePrefix = string.Empty;
             });
 
+            app.UseAuthentication();
             app.UseFileServer();
             app.UseRouting();
             app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");
+
             app.UseSignalR(routes =>
             {
                 routes.MapHub<NotifyHub>("/api/notify");
