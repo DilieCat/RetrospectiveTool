@@ -8,14 +8,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200109142305_Initial.cs" />
+    <Compile Remove="Migrations\20200109142305_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20200109142501_Initial2.cs" />
+    <Compile Remove="Migrations\20200109142501_Initial2.Designer.cs" />
+    <Compile Remove="Migrations\20200109142928_Initial3.cs" />
+    <Compile Remove="Migrations\20200109142928_Initial3.Designer.cs" />
     <Compile Remove="Migrations\20200110105152_cascade.cs" />
     <Compile Remove="Migrations\20200110105152_cascade.Designer.cs" />
+    <Compile Remove="Migrations\20200113132116_Identity.cs" />
+    <Compile Remove="Migrations\20200113132116_Identity.Designer.cs" />
+    <Compile Remove="Migrations\20200113132144_Identity.cs" />
+    <Compile Remove="Migrations\20200113132144_Identity.Designer.cs" />
+    <Compile Remove="Migrations\20200113132710_Identity-Connection.cs" />
+    <Compile Remove="Migrations\20200113132710_Identity-Connection.Designer.cs" />
+    <Compile Remove="Migrations\20200113133333_Identity-Connection-Fix.cs" />
+    <Compile Remove="Migrations\20200113133333_Identity-Connection-Fix.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,6 +10,7 @@ using Retrospective_Core.Services;
 using Retrospective_EFSQLRetrospectiveDbImpl;
 using Retrospective_EFSQLRetrospectiveDbImpl.Seeds;
 using Retrospective_Back_End.Realtime;
+using Retrospective_Core.Models;
 
 namespace Retrospective_Back_End
 {
@@ -40,6 +41,14 @@ namespace Retrospective_Back_End
             services.AddDbContext<RetroSpectiveDbContext>(options =>
 	            options.UseSqlServer(
 		            Configuration["Data:ConnectionString"]));
+
+            services.AddIdentity<RetroUser, RetroRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+            }).AddEntityFrameworkStores<RetroSpectiveDbContext>();
+
             services.AddTransient<IRetroRespectiveRepository, EFRetrospectiveRepository>();
             services.AddControllersWithViews().AddNewtonsoftJson(options =>options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }

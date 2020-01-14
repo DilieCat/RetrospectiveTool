@@ -1,14 +1,20 @@
+
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System;
 using Retrospective_Core.Models;
 
 namespace Retrospective_EFSQLRetrospectiveDbImpl {
   
-    public class RetroSpectiveDbContext : DbContext {
+    public class RetroSpectiveDbContext : IdentityDbContext<RetroUser, RetroRole, int> {
 
         public RetroSpectiveDbContext(DbContextOptions<RetroSpectiveDbContext> options) : base(options) { }
       
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+			base.OnModelCreating(modelBuilder);
+
 	        modelBuilder.Entity<Retrospective>()
 		        .HasMany(i => i.RetroColumns)
 		        .WithOne(c => c.Retrospective)
