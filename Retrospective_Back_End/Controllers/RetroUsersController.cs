@@ -38,9 +38,9 @@ namespace Retrospective_Back_End.Controllers
         /// </summary>
         /// <param name="model"></param>
         [HttpPost("register")]
-        public async  Task<ActionResult> Register([FromBody] RegistrationModel model)
+        public async Task<ActionResult> Register([FromBody] RegistrationModel model)
         {
-           if(ModelState.IsValid && IsValid(model.Email) && IsValid(model.Password))
+            if (ModelState.IsValid && IsValid(model.Email) && IsValid(model.Password))
             {
                 RetroUser user = new RetroUser
                 {
@@ -54,15 +54,11 @@ namespace Retrospective_Back_End.Controllers
                 if (result.Succeeded)
                 {
                     return Ok();
-                } else
-                {
-                    return BadRequest();
                 }
-            } else
-            {
-                return BadRequest();
             }
-        } 
+
+            return BadRequest();
+        }
 
         /// <summary>
         /// Logining in an existing user
