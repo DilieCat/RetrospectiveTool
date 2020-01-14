@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Retrospective_Core.Models;
@@ -14,8 +12,7 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl.Seeds
     {
         public static async Task Initialize(IServiceProvider serviceProvider)
         {
-            //RetrospectiveDbContext context = app.Service.GetRequiredService<RetrospectiveDbContext>();
-            using var context = new RetroSpectiveDbContext(
+            await using var context = new RetroSpectiveDbContext(
 
                 serviceProvider.GetRequiredService<DbContextOptions<RetroSpectiveDbContext>>());
             if (context.Retrospectives.Any(x => x.Title == "Training 1"))
@@ -64,11 +61,6 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl.Seeds
             RetroCard retroCard4 = new RetroCard { Content = "Ik sta in collom 3 als het goed is", Position = 1};
 
             retroColumn1.RetroCards.Add(retroCard1);
-            //  retroColumn2.RetroItems.Add(retroCard2);
-            //retroColumn3.RetroItems.Add(retroCard3);
-            //retroColumn3.RetroItems.Add(retroCard4);
-
-            //retroColumn1.RetroItems.Add(retroFamily1);
 
             retrospective.RetroColumns.Add(retroColumn1);
             retrospective.RetroColumns.Add(retroColumn2);
