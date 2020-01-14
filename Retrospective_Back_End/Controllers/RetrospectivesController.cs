@@ -9,6 +9,7 @@ using Retrospective_Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System;
+using Retrospective_Back_End.Utils;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -111,21 +112,22 @@ namespace Retrospective_Back_End.Controllers
         /// Create a new Retrospective
         /// </summary>
         // POST: api/Retrospectives
-        [Authorize]
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
-            var token = Request.Headers["token"];
-            var handler = new JwtSecurityTokenHandler();
-            var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+            var id = Decoder.DecodeToken(Request.Headers["token"]);
 
-            var id = tokenS.Claims.First(claim => claim.Type == "sub").Value;
+            if (id != null)
+            {
+                retrospective.RetroUserId = int.Parse(id);
 
-            retrospective.RetroUserId = int.Parse(id);
+                retrospective = ThreeColumnTemplate(retrospective);
 
-            retrospective = ThreeColumnTemplate(retrospective);
-
-            _context.SaveRetrospective(retrospective);
+                _context.SaveRetrospective(retrospective);
+            } else
+            {
+                return Unauthorized();
+            }
 
             return CreatedAtAction("GetRetrospective", new { id = retrospective.Id }, retrospective);
         }
@@ -133,8 +135,7 @@ namespace Retrospective_Back_End.Controllers
         /// <summary>
         /// Delete a Retrospective by id
         /// </summary>
-        // DELETE: api/Retrospectives/5
-        [Authorize]
+        // DELETE: api/Retrospectives/
         [HttpDelete("{id}")]
         public ActionResult<Retrospective> DeleteRetrospective(int id)
         {
@@ -158,7 +159,6 @@ namespace Retrospective_Back_End.Controllers
         /// Delete all RetroCards and RetroItems from a Retrospective by id
         /// </summary>
         // DELETE: api/Retrospectives/{id}/RetroCards
-        [Authorize]
         [HttpDelete("{id}/RetroCards")]
         public ActionResult<Retrospective> CleanRetrospective(int id)
         {
