@@ -142,13 +142,18 @@ namespace Retrospective_Back_End.Controllers
         public ActionResult<Retrospective> DeleteRetrospective(int id)
         {
             var retrospective = _context.Retrospectives.First(r => r.Id == id);
+
+            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+
             if (retrospective == null)
-            {
                 return NotFound();
-            }
 
+            if (decodedId == null || retrospective.RetroUserId == int.Parse(decodedId))
+                return Unauthorized();
+
+            
             _context.RemoveRetrospective(retrospective);
-
+               
             return retrospective;
         }
 
@@ -172,10 +177,13 @@ namespace Retrospective_Back_End.Controllers
                 .ThenInclude(x => x.RetroCards)
                 .FirstOrDefault(r => r.Id == id);
 
+            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+
             if (retrospective == null)
-            {
                 return NotFound();
-            }
+
+            if (decodedId == null || retrospective.RetroUserId != int.Parse(decodedId))
+                return Unauthorized();
 
             _context.CleanRetrospective(retrospective);
 
