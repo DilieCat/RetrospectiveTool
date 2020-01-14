@@ -7,6 +7,8 @@ using Microsoft.Extensions.FileProviders;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -113,6 +115,14 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
+            var token = Request.Headers["token"];
+            var handler = new JwtSecurityTokenHandler();
+            var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+
+            var id = tokenS.Claims.First(claim => claim.Type == "sub").Value;
+
+            retrospective.RetroUserId = int.Parse(id);
+
             retrospective = ThreeColumnTemplate(retrospective);
 
             _context.SaveRetrospective(retrospective);
