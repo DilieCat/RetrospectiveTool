@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
+using Retrospective_Back_End.Utils;
+using Decoder = Retrospective_Back_End.Utils.Decoder;
 
 namespace Retrospective_Back_End
 {
@@ -81,7 +83,8 @@ namespace Retrospective_Back_End
 
             services.AddTransient<IRetroRespectiveRepository, EFRetrospectiveRepository>();
             services.AddControllersWithViews().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-            
+            services.AddTransient<IDecoder, Decoder>();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Retrospective Tool API V1", Version = "v1" });
