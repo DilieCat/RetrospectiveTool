@@ -25,6 +25,9 @@ namespace Retrospective_Back_End.Controllers
             this._hubContext = Context;
         }
 
+        /// <summary>
+        /// Get all RetroFamilies
+        /// </summary>
         // GET: api/RetroFamilies
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RetroFamily>>> Get()
@@ -32,6 +35,9 @@ namespace Retrospective_Back_End.Controllers
             return await Task.FromResult(_repo.RetroFamilies.ToList());
         }
 
+        /// <summary>
+        /// Get single RetroFamily by id
+        /// </summary>
         // GET: api/RetroFamily/5
         [HttpGet("{id}", Name = "Get")]
         public ActionResult<RetroFamily> Get(int id)
@@ -45,6 +51,9 @@ namespace Retrospective_Back_End.Controllers
             return family;
         }
 
+        /// <summary>
+        /// Create a new RetroFamily
+        /// </summary>
         // POST: api/RetroFamily
         [HttpPost]
         public ActionResult<RetroFamily> Post([FromBody] RetroFamily retroFamily)
@@ -68,6 +77,9 @@ namespace Retrospective_Back_End.Controllers
             return retroFamily;
         }
 
+        /// <summary>
+        /// Update a RetroFamily
+        /// </summary>
         // PUT: api/RetroFamily/5
         [HttpPut]
         public void Put([FromBody] RetroFamily retroFamily)
@@ -89,6 +101,9 @@ namespace Retrospective_Back_End.Controllers
             }
         }
 
+        /// <summary>
+        /// Delete a RetroFamily by id
+        /// </summary>
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public ActionResult<RetroFamily> Delete(int id)
@@ -102,6 +117,8 @@ namespace Retrospective_Back_End.Controllers
             {
                 RetroColumn retroColumn = _repo.RetroColumns.FirstOrDefault(x => x.Id == family.RetroColumnId);
 
+                _repo.RemoveRetroFamily(family);
+
                 if (_hubContext.Clients != null)
                 {
                     try
@@ -114,7 +131,6 @@ namespace Retrospective_Back_End.Controllers
                     }
                 }
 
-                _repo.RemoveRetroFamily(family);
                 return family;
             }
         }
