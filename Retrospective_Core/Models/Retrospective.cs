@@ -20,7 +20,7 @@ namespace Retrospective_Core.Models {
         public ICollection<RetroColumn> RetroColumns { get; set; }
 
         [ForeignKey("RetroUserId")]
-        public int UserId { get; set; }
+        public int RetroUserId { get; set; }
 
         public virtual RetroUser RetroUser { get; set; } 
 

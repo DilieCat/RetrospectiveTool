@@ -24,6 +24,8 @@
     <Compile Remove="Migrations\20200113132710_Identity-Connection.Designer.cs" />
     <Compile Remove="Migrations\20200113133333_Identity-Connection-Fix.cs" />
     <Compile Remove="Migrations\20200113133333_Identity-Connection-Fix.Designer.cs" />
+    <Compile Remove="Migrations\20200113133700_identity.cs" />
+    <Compile Remove="Migrations\20200113133700_identity.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

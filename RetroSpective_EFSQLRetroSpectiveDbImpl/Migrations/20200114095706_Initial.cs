@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
 {
-    public partial class identity : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -163,8 +163,7 @@ namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
                     Title = table.Column<string>(nullable: true),
                     Description = table.Column<string>(nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "Date", nullable: false),
-                    UserId = table.Column<int>(nullable: false),
-                    RetroUserId = table.Column<int>(nullable: true)
+                    RetroUserId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,7 +173,7 @@ namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
                         column: x => x.RetroUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(

@@ -10,8 +10,8 @@ using Retrospective_EFSQLRetrospectiveDbImpl;
 namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
 {
     [DbContext(typeof(RetroSpectiveDbContext))]
-    [Migration("20200113133700_identity")]
-    partial class identity
+    [Migration("20200114095706_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -308,14 +308,11 @@ namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RetroUserId")
+                    b.Property<int>("RetroUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -411,7 +408,9 @@ namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
                 {
                     b.HasOne("Retrospective_Core.Models.RetroUser", "RetroUser")
                         .WithMany()
-                        .HasForeignKey("RetroUserId");
+                        .HasForeignKey("RetroUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

@@ -306,14 +306,11 @@ namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RetroUserId")
+                    b.Property<int>("RetroUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -409,7 +406,9 @@ namespace RetroSpective_EFSQLRetroSpectiveDbImpl.Migrations
                 {
                     b.HasOne("Retrospective_Core.Models.RetroUser", "RetroUser")
                         .WithMany()
-                        .HasForeignKey("RetroUserId");
+                        .HasForeignKey("RetroUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
