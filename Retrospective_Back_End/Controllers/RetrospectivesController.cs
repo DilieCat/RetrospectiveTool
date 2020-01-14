@@ -18,10 +18,12 @@ namespace Retrospective_Back_End.Controllers
     public class RetrospectivesController : ControllerBase
     {
         private readonly IRetroRespectiveRepository _context;
+        private readonly IDecoder decoder;
 
-        public RetrospectivesController(IRetroRespectiveRepository context)
+        public RetrospectivesController(IRetroRespectiveRepository context, IDecoder decoder)
         {
             _context = context;
+            this.decoder = decoder;
         }
 
         /// <summary>
@@ -115,7 +117,7 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
-            var id = Decoder.DecodeToken(Request.Headers["token"]);
+            var id = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
 
             if (id != null)
             {

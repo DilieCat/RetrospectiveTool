@@ -10,6 +10,7 @@ using Retrospective_Core.Services;
 using Retrospective_Core.Models;
 using Xunit.Abstractions;
 using Assert = Xunit.Assert;
+using Retrospective_Back_End.Utils;
 
 namespace Retrospective_Back_End_Test
 {
@@ -18,6 +19,8 @@ namespace Retrospective_Back_End_Test
         private readonly ITestOutputHelper _testOutputHelper;
         readonly Mock<IRetroRespectiveRepository> _mockRetrospectiveRepo;
         readonly IList<Retrospective> _retrospectives;
+        readonly Mock<IDecoder> _decoderMock = new Mock<IDecoder>();
+
         public TestRetrospectiveController(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
@@ -58,7 +61,7 @@ namespace Retrospective_Back_End_Test
         {
             //Arrange
             _mockRetrospectiveRepo.Setup(m => m.getAll()).Returns(_retrospectives.AsQueryable());
-            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object);
+            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
 
             //Act
             var result = await controller.GetRetrospectives();
@@ -73,7 +76,9 @@ namespace Retrospective_Back_End_Test
         public void PostRetrospective_ShouldCreateThreeColumns()
         {
             //arrange
-            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object);
+            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
+
+            _decoderMock.Setup(x => x.DecodeToken(It.IsAny<string>())).Returns("1");
 
             var retrospective = new Retrospective
             {
@@ -120,7 +125,7 @@ namespace Retrospective_Back_End_Test
 
             _mockRetrospectiveRepo.Setup(m => m.Retrospectives).Returns(_retrospectives.AsQueryable());
             _mockRetrospectiveRepo.Setup(r => r.CleanRetrospective(It.IsAny<Retrospective>())).Callback((Action<Retrospective>) Action);
-            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object);
+            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
 
 
             //Act
