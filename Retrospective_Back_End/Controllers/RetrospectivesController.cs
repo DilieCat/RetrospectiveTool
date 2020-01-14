@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -67,6 +68,7 @@ namespace Retrospective_Back_End.Controllers
         }
 
         // PUT: api/Retrospectives/5
+        [Authorize]
         [HttpPut("{id}")]
         public IActionResult PutRetrospective(int id, Retrospective retrospective)
         {
@@ -95,6 +97,7 @@ namespace Retrospective_Back_End.Controllers
         }
 
         // POST: api/Retrospectives
+        [Authorize]
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
@@ -106,6 +109,7 @@ namespace Retrospective_Back_End.Controllers
         }
 
         // DELETE: api/Retrospectives/5
+        [Authorize]
         [HttpDelete("{id}")]
         public ActionResult<Retrospective> DeleteRetrospective(int id)
         {
@@ -126,6 +130,7 @@ namespace Retrospective_Back_End.Controllers
         }
 
         // DELETE: api/Retrospectives/{id}/RetroCards
+        [Authorize]
         [HttpDelete("{id}/RetroCards")]
         public ActionResult<Retrospective> CleanRetrospective(int id)
         {
