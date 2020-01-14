@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Retrospective_Core.Models;
@@ -8,7 +12,7 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl.Seeds
 {
     public static class SeedData
     {
-        public static void Initialize(IServiceProvider serviceProvider)
+        public static async Task Initialize(IServiceProvider serviceProvider)
         {
             //RetrospectiveDbContext context = app.Service.GetRequiredService<RetrospectiveDbContext>();
             using var context = new RetroSpectiveDbContext(
@@ -19,12 +23,30 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl.Seeds
                 return;   // DB has been seeded
             }
 
+            var user = new RetroUser
+            {
+                Email = "henk@mail.com",
+                UserName = "henk@mail.com",
+                LockoutEnabled = false
+            };
+
+            var password = "Superhelder123!";
+
+            var usrMgr = serviceProvider.GetRequiredService<UserManager<RetroUser>>();
+
+            await usrMgr.CreateAsync(user, password);
+
+            context.SaveChanges();
+
+            var result = usrMgr.Users.FirstOrDefault(u => u.Email == user.Email);
 
             Retrospective retrospective = new Retrospective
             {
                 CreatedDate = new DateTime(),
                 Description = "Welkom bij de eerste retro training",
-                Title = "Training 1"
+                Title = "Training 1",
+                RetroUser = result,
+                RetroUserId = result.Id
             };
 
             RetroColumn retroColumn1 = new RetroColumn { Title = "Dit is collom 1" };
@@ -56,6 +78,5 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl.Seeds
 
             context.SaveChanges();
         }
-
     }
 }
