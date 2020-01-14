@@ -26,6 +26,9 @@ namespace Retrospective_Back_End.Controllers
             _hubContext = hubContext;
         }
 
+        /// <summary>
+        /// Get all RetroColumns
+        /// </summary>
         // GET: api/RetroColumns
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RetroColumn>>> GetRetroColumns()
@@ -33,6 +36,9 @@ namespace Retrospective_Back_End.Controllers
             return await _context.RetroColumns.Include(c => c.RetroCards).ToListAsync();
         }
 
+        /// <summary>
+        /// Get single RetroColumn by id
+        /// </summary>
         // GET: api/RetroColumns/5
         [HttpGet("{id}")]
         public ActionResult<RetroColumn> GetRetroColumn(int id)
@@ -47,6 +53,9 @@ namespace Retrospective_Back_End.Controllers
             return retroColumn;
         }
 
+        /// <summary>
+        /// Update a RetroColumn
+        /// </summary>
         // PUT: api/RetroColumns
         [HttpPut]
         public ActionResult<RetroColumn> PutRetroColumn(RetroColumn retroColumn)
@@ -65,6 +74,9 @@ namespace Retrospective_Back_End.Controllers
             return retroColumn;
         }
 
+        /// <summary>
+        /// Create a new RetroColumn
+        /// </summary>
         // POST: api/RetroColumns
         [HttpPost]
         public ActionResult<RetroColumn> PostRetroColumn(RetroColumn retroColumn)
@@ -87,6 +99,9 @@ namespace Retrospective_Back_End.Controllers
 
         }
 
+        /// <summary>
+        /// Delete a RetroColumn by id
+        /// </summary>
         // DELETE: api/RetroColumns/5
         [HttpDelete("{id}")]
         public ActionResult<RetroColumn> DeleteRetroColumn(int id)

@@ -25,6 +25,9 @@ namespace Retrospective_Back_End.Controllers
 			_hubContext = hubContext;
 		}
 
+        /// <summary>
+        /// Get all RetroCard
+        /// </summary>
         // GET: api/RetroCards
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RetroCard>>> GetRetroCards()
@@ -32,6 +35,9 @@ namespace Retrospective_Back_End.Controllers
             return await _context.RetroCards.ToListAsync();
         }
 
+        /// <summary>
+        /// Get single RetroCard by id
+        /// </summary>
         // GET: api/RetroCards/5
         [HttpGet("{id}")]
         public ActionResult<RetroCard> GetRetroCard(int id)
@@ -46,10 +52,10 @@ namespace Retrospective_Back_End.Controllers
             return retroCard;
         }
 
-        // PUT: api/RetroCards/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
 
+        /// <summary>
+        /// Update a RetroCard
+        /// </summary>
         // PUT: api/RetroCards
         [HttpPut]
         public ActionResult<RetroCard> UpdateRetroCard(RetroCard retroCard)
@@ -75,8 +81,11 @@ namespace Retrospective_Back_End.Controllers
             return retroCard;
         }
 
-		// POST: api/RetroCards
-		[HttpPost]
+        /// <summary>
+        /// Create a new RetroCard
+        /// </summary>
+        // POST: api/RetroCards
+        [HttpPost]
 		public ActionResult<RetroCard> PostRetroCard(RetroCard retroCard)
 		{
 			_context.SaveRetroCard(retroCard);
@@ -98,6 +107,9 @@ namespace Retrospective_Back_End.Controllers
             return CreatedAtAction("GetRetroCard", new { id = retroCard.Id }, retroCard);
 		}
 
+        /// <summary>
+        /// Delete a RetroCard by id
+        /// </summary>
         // DELETE: api/RetroCards/5
         [HttpDelete("{id}")]
         public ActionResult<RetroCard> DeleteRetroCard(int id)
