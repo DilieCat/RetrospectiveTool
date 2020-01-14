@@ -32,6 +32,11 @@ namespace Retrospective_Back_End.Controllers
             _repo = repo;
         }
 
+
+        /// <summary>
+        /// Registering a new user
+        /// </summary>
+        /// <param name="model"></param>
         [HttpPost("register")]
         public async  Task<ActionResult> Register([FromBody] RegistrationModel model)
         {
@@ -59,6 +64,10 @@ namespace Retrospective_Back_End.Controllers
             }
         } 
 
+        /// <summary>
+        /// Logining in an existing user
+        /// </summary>
+        /// <param name="model"></param>
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] RegistrationModel model)
         {
