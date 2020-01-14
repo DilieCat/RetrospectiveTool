@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Retrospective_Back_End.Utils
 {
-    public class Decoder
+    public class Decoder : IDecoder
     {
 
-        public static string DecodeToken(string token)
+        public string DecodeToken(string token)
         {
             if (token == null)
                 return null; 
