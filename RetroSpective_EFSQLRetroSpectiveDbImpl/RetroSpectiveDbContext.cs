@@ -52,6 +52,9 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl {
 				.HasForeignKey(i => i.RetroColumnId)
 				.OnDelete(DeleteBehavior.Cascade);
 			});
+
+
+
 			
         }
 
