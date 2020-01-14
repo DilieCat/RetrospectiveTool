@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -6,10 +8,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using Retrospective_Core.Services;
 using Retrospective_EFSQLRetrospectiveDbImpl;
 using Retrospective_EFSQLRetrospectiveDbImpl.Seeds;
 using Retrospective_Back_End.Realtime;
+using Retrospective_Core.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Retrospective_Back_End
 {
@@ -27,11 +34,11 @@ namespace Retrospective_Back_End
         {
             services.AddCors(options =>
             {
-            options.AddPolicy("CorsPolicy", builder => builder
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .SetIsOriginAllowed(isOriginAllowed: _ => true)
-                .AllowCredentials());
+                options.AddPolicy("CorsPolicy", builder => builder
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .SetIsOriginAllowed(isOriginAllowed: _ => true)
+                    .AllowCredentials());
 
             });
             services.AddSignalR();
@@ -40,8 +47,45 @@ namespace Retrospective_Back_End
             services.AddDbContext<RetroSpectiveDbContext>(options =>
 	            options.UseSqlServer(
 		            Configuration["Data:ConnectionString"]));
+
+            services.AddIdentity<RetroUser, RetroRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+            }).AddEntityFrameworkStores<RetroSpectiveDbContext>();
+
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = "https://true-lime.herokuapp.com/",
+                    ValidIssuer = "https://true-lime.herokuapp.com/",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecureKey"))
+                };
+            });
+
             services.AddTransient<IRetroRespectiveRepository, EFRetrospectiveRepository>();
-            services.AddControllersWithViews().AddNewtonsoftJson(options =>options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            services.AddControllersWithViews().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Retrospective Tool API V1", Version = "v1" });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider service)
@@ -52,13 +96,23 @@ namespace Retrospective_Back_End
             }
             else
             {
-	            app.UseHsts();
+                app.UseHsts();
             }
 
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Retrospective Tool API V1");
+                c.RoutePrefix = string.Empty;
+            });
+
+            app.UseAuthentication();
             app.UseFileServer();
             app.UseRouting();
             app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");
+
             app.UseSignalR(routes =>
             {
                 routes.MapHub<NotifyHub>("/api/notify");

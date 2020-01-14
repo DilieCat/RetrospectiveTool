@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -20,6 +21,9 @@ namespace Retrospective_Back_End.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Get all Retrospectives
+        /// </summary>
         // GET: api/Retrospectives
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Retrospective>>> GetRetrospectives()
@@ -27,6 +31,9 @@ namespace Retrospective_Back_End.Controllers
             return await Task.FromResult(_context.getAll().ToList());
         }
 
+        /// <summary>
+        /// Get single Retrospective by id
+        /// </summary>
         // GET: api/Retrospectives/5
         [HttpGet("{id}")]
         public ActionResult<Retrospective> GetRetrospective(int id)
@@ -66,7 +73,11 @@ namespace Retrospective_Back_End.Controllers
             return retrospective;
         }
 
+        /// <summary>
+        /// Update a Retrospective by id
+        /// </summary>
         // PUT: api/Retrospectives/5
+        [Authorize]
         [HttpPut("{id}")]
         public IActionResult PutRetrospective(int id, Retrospective retrospective)
         {
@@ -94,7 +105,11 @@ namespace Retrospective_Back_End.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Create a new Retrospective
+        /// </summary>
         // POST: api/Retrospectives
+        [Authorize]
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
@@ -105,7 +120,11 @@ namespace Retrospective_Back_End.Controllers
             return CreatedAtAction("GetRetrospective", new { id = retrospective.Id }, retrospective);
         }
 
+        /// <summary>
+        /// Delete a Retrospective by id
+        /// </summary>
         // DELETE: api/Retrospectives/5
+        [Authorize]
         [HttpDelete("{id}")]
         public ActionResult<Retrospective> DeleteRetrospective(int id)
         {
@@ -125,17 +144,21 @@ namespace Retrospective_Back_End.Controllers
             return _context.Retrospectives.Any(e => e.Id == id);
         }
 
+        /// <summary>
+        /// Delete all RetroCards and RetroItems from a Retrospective by id
+        /// </summary>
         // DELETE: api/Retrospectives/{id}/RetroCards
+        [Authorize]
         [HttpDelete("{id}/RetroCards")]
         public ActionResult<Retrospective> CleanRetrospective(int id)
         {
             var retrospective = _context.Retrospectives
-	            .Include(c => c.RetroColumns)
-	            .ThenInclude(s => s.RetroCards)
-	            .Include(c => c.RetroColumns)
-	            .ThenInclude(s => s.RetroFamilies)
-	            .ThenInclude(x => x.RetroCards)
-	            .FirstOrDefault(r => r.Id == id);
+                .Include(c => c.RetroColumns)
+                .ThenInclude(s => s.RetroCards)
+                .Include(c => c.RetroColumns)
+                .ThenInclude(s => s.RetroFamilies)
+                .ThenInclude(x => x.RetroCards)
+                .FirstOrDefault(r => r.Id == id);
 
             if (retrospective == null)
             {
