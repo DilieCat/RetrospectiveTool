@@ -17,6 +17,7 @@ using Retrospective_Core.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Identity;
 
 namespace Retrospective_Back_End
 {
@@ -32,6 +33,8 @@ namespace Retrospective_Back_End
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers().AddNewtonsoftJson();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", builder => builder
@@ -53,7 +56,8 @@ namespace Retrospective_Back_End
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = true;
-            }).AddEntityFrameworkStores<RetroSpectiveDbContext>();
+            }).AddEntityFrameworkStores<RetroSpectiveDbContext>()
+                .AddDefaultTokenProviders();
 
 
             services.AddAuthentication(options =>

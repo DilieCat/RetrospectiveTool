@@ -79,7 +79,6 @@ namespace Retrospective_Back_End.Controllers
         /// Create a new RetroColumn
         /// </summary>
         // POST: api/RetroColumns
-        [Authorize]
         [HttpPost]
         public ActionResult<RetroColumn> PostRetroColumn(RetroColumn retroColumn)
         {
@@ -105,7 +104,6 @@ namespace Retrospective_Back_End.Controllers
         /// Delete a RetroColumn by id
         /// </summary>
         // DELETE: api/RetroColumns/5
-        [Authorize]
         [HttpDelete("{id}")]
         public ActionResult<RetroColumn> DeleteRetroColumn(int id)
         {
