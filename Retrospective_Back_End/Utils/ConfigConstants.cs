@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 namespace Retrospective_Back_End.Utils
 {
     public static class ConfigConstants
@@ -13,8 +9,10 @@ namespace Retrospective_Back_End.Utils
         public static string Subject = "Password recovery";
 
         public static string DescriptionDutch =
-            "U heeft een wachtwoordwijziging aangevraagd via de Truelime Retrospective Tool website. Als u dit niet aangevraagd heeft, negeer dan dit bericht. \bKlik op de link om uw huidige wachtwoord te wijzigen: ";
+            "U heeft een wachtwoordwijziging aangevraagd via de Truelime Retrospective Tool website. Als u dit niet aangevraagd heeft, negeer dan dit bericht. \b De link is 30 minuten geldig. Kopieer de link, plak de url in de browser en ga om uw huidige wachtwoord te wijzigen: ";
 
+        public static string SubjectDutch =
+            "Truelime Retrotool wachtwoord reset";
 
     }
 }
