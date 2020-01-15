@@ -33,7 +33,14 @@ namespace Retrospective_Back_End.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Retrospective>>> GetRetrospectives()
         {
-            return await Task.FromResult(_context.getAll().ToList());
+            var id = decoder.DecodeToken(Request != null ? Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null : null);
+
+            if (id == null)
+            {
+                return Unauthorized();
+            }
+
+            return await Task.FromResult(_context.getAll().Where(x => x.RetroUserId == int.Parse(id)).ToList());
         }
 
         /// <summary>
@@ -126,7 +133,8 @@ namespace Retrospective_Back_End.Controllers
                 retrospective = ThreeColumnTemplate(retrospective);
 
                 _context.SaveRetrospective(retrospective);
-            } else
+            }
+            else
             {
                 return Unauthorized();
             }
@@ -151,9 +159,9 @@ namespace Retrospective_Back_End.Controllers
             if (decodedId == null || retrospective.RetroUserId == int.Parse(decodedId))
                 return Unauthorized();
 
-            
+
             _context.RemoveRetrospective(retrospective);
-               
+
             return retrospective;
         }
 
