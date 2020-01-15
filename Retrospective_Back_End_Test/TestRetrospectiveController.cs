@@ -31,6 +31,7 @@ namespace Retrospective_Back_End_Test
                     Title = "Board 1",
                     Description = "Dit is board 1",
                     CreatedDate = DateTime.Now,
+                    RetroUserId = 1,
                     RetroColumns = new List<RetroColumn>()
                     {
                         new RetroColumn
@@ -125,7 +126,11 @@ namespace Retrospective_Back_End_Test
 
             _mockRetrospectiveRepo.Setup(m => m.Retrospectives).Returns(_retrospectives.AsQueryable());
             _mockRetrospectiveRepo.Setup(r => r.CleanRetrospective(It.IsAny<Retrospective>())).Callback((Action<Retrospective>) Action);
+            _decoderMock.Setup(x => x.DecodeToken(It.IsAny<string>())).Returns("1");
+            
             var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
+
+           
 
 
             //Act
