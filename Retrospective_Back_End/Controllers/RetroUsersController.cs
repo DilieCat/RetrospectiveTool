@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualStudio.Web.CodeGeneration.Contracts.Messaging;
 using Retrospective_Back_End.Models;
+using Retrospective_Back_End.Services;
+using Retrospective_Back_End.Utils;
 using Retrospective_Core.Models;
 using Retrospective_Core.Services;
 
@@ -20,14 +23,17 @@ namespace Retrospective_Back_End.Controllers
         private readonly UserManager<RetroUser> userManager;
         private readonly SignInManager<RetroUser> signInManager;
         private IRetroRespectiveRepository _repo;
+        private readonly IDecoder decoder;
 
         public RetroUsersController(UserManager<RetroUser> userMgr,
             SignInManager<RetroUser> signInMgr,
-            IRetroRespectiveRepository repo)
+            IRetroRespectiveRepository repo,
+            IDecoder decoder)
         {
             userManager = userMgr;
             signInManager = signInMgr;
             _repo = repo;
+            this.decoder = decoder;
         }
 
 
@@ -53,9 +59,15 @@ namespace Retrospective_Back_End.Controllers
                 {
                     return Ok();
                 }
+                else
+                {
+                    return StatusCode(409);
+                }
             }
-
-            return BadRequest();
+            else
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -87,17 +99,21 @@ namespace Retrospective_Back_End.Controllers
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                     expiration = token.ValidTo
                 });
-            }
+            } 
 
-            return BadRequest();
+            return Unauthorized();
         }
 
-        [HttpPost("resetpassword")]
-        public async Task<ActionResult> ResetPassword([FromBody] string EmailAddress)
+        /// <summary>
+        /// To recover account for sending a mail to the user with a password reset link in frontend
+        /// </summary>
+        /// <param name="recoveryViewModel"></param>
+        [HttpPost("recovery")]
+        public async Task<ActionResult> AccountRecovery([FromBody] RecoveryViewModel recoveryViewModel)
         {
-            if (IsValid(EmailAddress))
+            if (IsValid(recoveryViewModel.Email))
             {
-                var user = await userManager.FindByEmailAsync(EmailAddress);
+                var user = await userManager.FindByEmailAsync(recoveryViewModel.Email);
 
                 if (user != null)
                 {
@@ -113,31 +129,64 @@ namespace Retrospective_Back_End.Controllers
                         claims: authClaims,
                         expires: DateTime.Now.AddMinutes(30)
                     );
+
+                    SendGridEmailService.ExecuteSendRecoveryEmail(user.Email, new JwtSecurityTokenHandler().WriteToken(token)).Wait();
+
+                    return Ok(new
+                    {
+                        message = MessageConstants.AccountRecoveryOk
+                    });
                 }
             }
 
-            return BadRequest();
+            return BadRequest(new
+            {
+                message = MessageConstants.AccountRecoveryBad
+            });
         }
 
-        [HttpPost("updatepassword")]
-        public async Task<ActionResult> UpdatePassword([FromBody] string password)
+        /// <summary>
+        /// Updates the password of a RetroUser
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="passwordViewModel"></param>
+        [HttpPost("updatepassword/{token}")]
+        public async Task<ActionResult> UpdatePassword(string token, [FromBody] UpdatePasswordViewModel passwordViewModel)
         {
             // First checktoken
             // TODO: Add token check
-            var token = "";
+            var retroUserId = decoder.DecodeToken(token);
 
-            var tokenIsValid = true;
+            var retroUser = await userManager.FindByIdAsync(retroUserId);
 
-            if (tokenIsValid)
+            if (retroUser != null)
             {
-                var user = userManager.Users.FirstOrDefault();
+                var result = await userManager.RemovePasswordAsync(retroUser);
 
-                await userManager.ChangePasswordAsync(user, user.PasswordHash, password);
-
-                return Ok();
+                if (result.Succeeded)
+                {
+                    result = await userManager.AddPasswordAsync(retroUser, passwordViewModel.Password);
+                    if (result.Succeeded)
+                    {
+                        return Ok(new
+                        {
+                            message = MessageConstants.ResetPasswordOk
+                        });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        message = MessageConstants.ResetPasswordError
+                    });
+                }
             }
 
-            return BadRequest();
+            return BadRequest(new
+            {
+                message = MessageConstants.ResetPasswordBad
+            });
         }
 
         private bool IsValid(string s)
