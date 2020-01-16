@@ -3,7 +3,6 @@ using Retrospective_Back_End.Controllers;
 using Retrospective_Core.Models;
 using Retrospective_Core.Services;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.SignalR;

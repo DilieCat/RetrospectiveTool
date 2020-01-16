@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using Moq;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Retrospective_Back_End.Controllers;
 using Xunit;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
-using Xunit.Abstractions;
 using Assert = Xunit.Assert;
 using Retrospective_Back_End.Utils;
 
@@ -16,15 +14,13 @@ namespace Retrospective_Back_End_Test
 {
     public class TestRetrospectiveController
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-        readonly Mock<IRetroRespectiveRepository> _mockRetrospectiveRepo;
+	    readonly Mock<IRetroRespectiveRepository> _mockRetrospectiveRepo;
         readonly IList<Retrospective> _retrospectives;
         readonly Mock<IDecoder> _decoderMock = new Mock<IDecoder>();
 
-        public TestRetrospectiveController(ITestOutputHelper testOutputHelper)
+        public TestRetrospectiveController()
         {
-            _testOutputHelper = testOutputHelper;
-            this._mockRetrospectiveRepo = new Mock<IRetroRespectiveRepository>();
+	        this._mockRetrospectiveRepo = new Mock<IRetroRespectiveRepository>();
             this._retrospectives = new List<Retrospective>()
             {
                 new Retrospective {
@@ -61,7 +57,7 @@ namespace Retrospective_Back_End_Test
         public async void GetAllRetrospectives()
         {
             //Arrange
-            _mockRetrospectiveRepo.Setup(m => m.getAll()).Returns(_retrospectives.AsQueryable());
+            _mockRetrospectiveRepo.Setup(m => m.GetAll()).Returns(_retrospectives.AsQueryable());
             var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
 
             //Act
@@ -96,7 +92,7 @@ namespace Retrospective_Back_End_Test
 
             Assert.True(result?.Value is Retrospective);
 
-            if (result?.Value is Retrospective retroResult)
+            if (result.Value is Retrospective retroResult)
             {
 	            Assert.Equal(retrospective.Title, retroResult.Title);
 	            Assert.Equal(3, retroResult.RetroColumns.Count);
@@ -142,8 +138,8 @@ namespace Retrospective_Back_End_Test
             int retroFamiliesSize = 0;
             foreach (var retroCard in _retrospectives.FirstOrDefault().RetroColumns)
             {
-                retroCardsSize += retroCard.RetroCards.Count();
-                retroFamiliesSize += retroCard.RetroFamilies.Count();
+                retroCardsSize += retroCard.RetroCards.Count;
+                retroFamiliesSize += retroCard.RetroFamilies.Count;
             }
 
             Assert.Equal(0, retroCardsSize);
