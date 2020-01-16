@@ -1,13 +1,18 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualStudio.Web.CodeGeneration.Contracts.Messaging;
 using Retrospective_Back_End.Models;
+using Retrospective_Back_End.Services;
+using Retrospective_Back_End.Utils;
 using Retrospective_Core.Models;
+using Retrospective_Core.Services;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -15,11 +20,20 @@ namespace Retrospective_Back_End.Controllers
     [ApiController]
     public class RetroUsersController : ControllerBase
     {
-        private readonly UserManager<RetroUser> _userManager;
+        private readonly UserManager<RetroUser> userManager;
+        private readonly SignInManager<RetroUser> signInManager;
+        private IRetroRespectiveRepository _repo;
+        private readonly IDecoder decoder;
 
-        public RetroUsersController(UserManager<RetroUser> userMgr)
+        public RetroUsersController(UserManager<RetroUser> userMgr,
+            SignInManager<RetroUser> signInMgr,
+            IRetroRespectiveRepository repo,
+            IDecoder decoder)
         {
-            _userManager = userMgr;
+            userManager = userMgr;
+            signInManager = signInMgr;
+            _repo = repo;
+            this.decoder = decoder;
         }
 
 
@@ -39,15 +53,21 @@ namespace Retrospective_Back_End.Controllers
                     LockoutEnabled = false
                 };
 
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
                     return Ok();
                 }
+                else
+                {
+                    return StatusCode(409);
+                }
             }
-
-            return BadRequest();
+            else
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -57,15 +77,17 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] RegistrationModel model)
         {
-            RetroUser user = await _userManager.FindByEmailAsync(model.Email);
+            RetroUser user = await userManager.FindByEmailAsync(model.Email);
 
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            if (user != null && await userManager.CheckPasswordAsync(user, model.Password))
             {
                 var authClaims = new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
+
+                var authSigninKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecureKey"));
 
                 var token = new JwtSecurityToken(
                     claims: authClaims,
@@ -75,13 +97,98 @@ namespace Retrospective_Back_End.Controllers
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    expiration = token.ValidTo,
+                    id = user.Id.ToString()
                 });
-            }
+            } 
 
-            return BadRequest();
+            return Unauthorized();
         }
 
+        /// <summary>
+        /// To recover account for sending a mail to the user with a password reset link in frontend
+        /// </summary>
+        /// <param name="recoveryViewModel"></param>
+        [HttpPost("recovery")]
+        public async Task<ActionResult> AccountRecovery([FromBody] RecoveryViewModel recoveryViewModel)
+        {
+            if (IsValid(recoveryViewModel.Email))
+            {
+                var user = await userManager.FindByEmailAsync(recoveryViewModel.Email);
+
+                if (user != null)
+                {
+                    var authClaims = new[]
+                    {
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                    };
+
+                    var authSigninKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecureKey"));
+
+                    var token = new JwtSecurityToken(
+                        claims: authClaims,
+                        expires: DateTime.Now.AddMinutes(30)
+                    );
+
+                    SendGridEmailService.ExecuteSendRecoveryEmail(user.Email, new JwtSecurityTokenHandler().WriteToken(token)).Wait();
+
+                    return Ok(new
+                    {
+                        message = MessageConstants.AccountRecoveryOk
+                    });
+                }
+            }
+
+            return BadRequest(new
+            {
+                message = MessageConstants.AccountRecoveryBad
+            });
+        }
+
+        /// <summary>
+        /// Updates the password of a RetroUser
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="passwordViewModel"></param>
+        [HttpPost("updatepassword/{token}")]
+        public async Task<ActionResult> UpdatePassword(string token, [FromBody] UpdatePasswordViewModel passwordViewModel)
+        {
+            // First checktoken
+            // TODO: Add token check
+            var retroUserId = decoder.DecodeToken(token);
+
+            var retroUser = await userManager.FindByIdAsync(retroUserId);
+
+            if (retroUser != null)
+            {
+                var result = await userManager.RemovePasswordAsync(retroUser);
+
+                if (result.Succeeded)
+                {
+                    result = await userManager.AddPasswordAsync(retroUser, passwordViewModel.Password);
+                    if (result.Succeeded)
+                    {
+                        return Ok(new
+                        {
+                            message = MessageConstants.ResetPasswordOk
+                        });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        message = MessageConstants.ResetPasswordError
+                    });
+                }
+            }
+
+            return BadRequest(new
+            {
+                message = MessageConstants.ResetPasswordBad
+            });
+        }
 
         private bool IsValid(string s)
         {

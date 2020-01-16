@@ -73,8 +73,8 @@ namespace Retrospective_Back_End
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
                     ValidAudience = "https://true-lime.herokuapp.com/",
                     ValidIssuer = "https://true-lime.herokuapp.com/",
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecureKey"))

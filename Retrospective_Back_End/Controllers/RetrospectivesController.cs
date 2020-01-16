@@ -3,9 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System;
 using Retrospective_Back_End.Utils;
 
 namespace Retrospective_Back_End.Controllers
@@ -15,12 +18,12 @@ namespace Retrospective_Back_End.Controllers
     public class RetrospectivesController : ControllerBase
     {
         private readonly IRetroRespectiveRepository _context;
-        private readonly IDecoder _decoder;
+        private readonly IDecoder decoder;
 
         public RetrospectivesController(IRetroRespectiveRepository context, IDecoder decoder)
         {
             _context = context;
-            this._decoder = decoder;
+            this.decoder = decoder;
         }
 
         /// <summary>
@@ -30,7 +33,14 @@ namespace Retrospective_Back_End.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Retrospective>>> GetRetrospectives()
         {
-            return await Task.FromResult(_context.GetAll().ToList());
+            var id = decoder.DecodeToken(Request != null ? Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null : null);
+
+            if (id == null)
+            {
+                return Unauthorized();
+            }
+
+            return await Task.FromResult(_context.getAll().Where(x => x.RetroUserId == int.Parse(id)).ToList());
         }
 
         /// <summary>
@@ -52,7 +62,7 @@ namespace Retrospective_Back_End.Controllers
                 {
                     foreach (RetroCard i in r.RetroCards)
                     {
-                        RetroCard c = i;
+                        RetroCard c = (RetroCard)i;
                         if (c.RetroFamily != null)
                         {
                             removedRetroCards.Add(i);
@@ -79,30 +89,18 @@ namespace Retrospective_Back_End.Controllers
         /// Update a Retrospective by id
         /// </summary>
         // PUT: api/Retrospectives/5
-        [Authorize]
-        [HttpPut("{id}")]
-        public IActionResult PutRetrospective(int id, Retrospective retrospective)
+        [HttpPut]
+        public IActionResult PutRetrospective(Retrospective retrospective)
         {
-            if (id != retrospective.Id)
-            {
-                return BadRequest();
-            }
+            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
 
-            try
-            {
-                _context.SaveRetrospective(retrospective);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RetrospectiveExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            if (retrospective == null)
+                return NotFound();
+
+            if (decodedId == null || retrospective.RetroUserId != int.Parse(decodedId))
+                return Unauthorized();
+
+            _context.SaveRetrospective(retrospective);
 
             return NoContent();
         }
@@ -114,7 +112,8 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
-            var id = _decoder.DecodeToken(Request?.Headers["token"].ToString());
+            var id = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
 
             if (id != null)
             {
@@ -123,7 +122,8 @@ namespace Retrospective_Back_End.Controllers
                 retrospective = ThreeColumnTemplate(retrospective);
 
                 _context.SaveRetrospective(retrospective);
-            } else
+            }
+            else
             {
                 return Unauthorized();
             }
@@ -139,10 +139,15 @@ namespace Retrospective_Back_End.Controllers
         public ActionResult<Retrospective> DeleteRetrospective(int id)
         {
             var retrospective = _context.Retrospectives.First(r => r.Id == id);
+
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
             if (retrospective == null)
-            {
                 return NotFound();
-            }
+
+            if (decodedId == null || retrospective.RetroUserId != int.Parse(decodedId))
+                return Unauthorized();
+
 
             _context.RemoveRetrospective(retrospective);
 
@@ -169,10 +174,14 @@ namespace Retrospective_Back_End.Controllers
                 .ThenInclude(x => x.RetroCards)
                 .FirstOrDefault(r => r.Id == id);
 
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
+
             if (retrospective == null)
-            {
                 return NotFound();
-            }
+
+            if (decodedId == null || retrospective.RetroUserId != int.Parse(decodedId))
+                return Unauthorized();
 
             _context.CleanRetrospective(retrospective);
 

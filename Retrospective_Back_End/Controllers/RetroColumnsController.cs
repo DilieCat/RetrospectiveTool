@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Retrospective_Back_End.Realtime;
+using Retrospective_Back_End.Utils;
 using Retrospective_Core.Models;
 using Retrospective_Core.Services;
 
@@ -15,12 +20,14 @@ namespace Retrospective_Back_End.Controllers
     public class RetroColumnsController : ControllerBase
     {
         private readonly IRetroRespectiveRepository _context;
-        private readonly IHubContext<NotifyHub, ITypedHubClient> _hubContext;
+        private IHubContext<NotifyHub, ITypedHubClient> _hubContext;
+        private IDecoder decoder;
 
-        public RetroColumnsController(IRetroRespectiveRepository context, IHubContext<NotifyHub, ITypedHubClient> hubContext)
+        public RetroColumnsController(IRetroRespectiveRepository context, IHubContext<NotifyHub, ITypedHubClient> hubContext, IDecoder decoder)
         {
             _context = context;
             _hubContext = hubContext;
+            this.decoder = decoder;
         }
 
         /// <summary>
@@ -54,6 +61,8 @@ namespace Retrospective_Back_End.Controllers
         /// Update a RetroColumn
         /// </summary>
         // PUT: api/RetroColumns
+
+        //TODO: FIGURE OUT HOW TO AUTHORIZE THIS ONE!
         [HttpPut]
         public ActionResult<RetroColumn> PutRetroColumn(RetroColumn retroColumn)
         {
@@ -63,7 +72,7 @@ namespace Retrospective_Back_End.Controllers
             {
                 _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
             }
-            catch
+            catch (Exception e)
             {
                 _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
             }
@@ -78,18 +87,28 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost]
         public ActionResult<RetroColumn> PostRetroColumn(RetroColumn retroColumn)
         {
+            Retrospective retrospective = _context.Retrospectives.First(x => x.Id == retroColumn.RetrospectiveId);
+
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
+            if (retrospective == null && retroColumn != null)
+                return NotFound();
+
+            if (decodedId == null || retrospective.RetroUserId != int.Parse(decodedId))
+                return Unauthorized();
+
             _context.SaveRetroColumn(retroColumn);
 
             if (_hubContext.Clients != null)
             {
-	            try
-	            {
-		            _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
-	            }
-	            catch
-	            {
-		            _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
-	            }
+                try
+                {
+                    _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
+                }
+                catch (Exception e)
+                {
+                    _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
+                }
             }
 
             return CreatedAtAction("GetRetroColumn", new { id = retroColumn.Id }, retroColumn);
@@ -104,10 +123,17 @@ namespace Retrospective_Back_End.Controllers
         public ActionResult<RetroColumn> DeleteRetroColumn(int id)
         {
             RetroColumn retroColumn = _context.RetroColumns.FirstOrDefault(c => c.Id == id);
-            if (retroColumn == null)
-            {
+
+            Retrospective retrospective = _context.Retrospectives.First(x => x.Id == retroColumn.RetrospectiveId);
+
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
+
+            if (retrospective == null && retroColumn != null)
                 return NotFound();
-            }
+
+            if (decodedId == null || retrospective.RetroUserId != int.Parse(decodedId))
+                return Unauthorized();
 
             _context.RemoveRetroColumn(retroColumn);
 
@@ -117,7 +143,7 @@ namespace Retrospective_Back_End.Controllers
                 {
                     _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
                 }
-                catch
+                catch (Exception e)
                 {
                     _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
                 }

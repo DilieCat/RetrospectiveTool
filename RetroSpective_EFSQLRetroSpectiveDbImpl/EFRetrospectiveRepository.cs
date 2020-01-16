@@ -25,7 +25,30 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl
 
         public IQueryable<Retrospective> GetAll()
         {
-            return _context.Retrospectives.Include(c => c.RetroColumns).ThenInclude(s => s.RetroCards);
+            IList<Retrospective> retrospectives =  _context.Retrospectives.Include(c => c.RetroColumns).ThenInclude(s => s.RetroCards).Include(x => x.RetroColumns).ThenInclude(x => x.RetroFamilies).ThenInclude(x => x.RetroCards).ToList();
+            ICollection<RetroCard> removedRetroCards = new List<RetroCard>();
+
+            foreach (Retrospective retrospective in retrospectives)
+            {
+                foreach (RetroColumn r in retrospective.RetroColumns)
+                {
+                    foreach (RetroCard i in r.RetroCards)
+                    {
+                        RetroCard c = (RetroCard) i;
+                        if (c.RetroFamily != null)
+                        {
+                            removedRetroCards.Add(i);
+                        }
+                    }
+
+                    foreach (RetroCard i in removedRetroCards)
+                    {
+                        r.RetroCards.Remove(i);
+                    }
+                }
+            }
+
+            return retrospectives.AsQueryable();
         }
 
         public void RemoveRetroCard(RetroCard baseItem)
@@ -141,24 +164,32 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl
 
         public void SaveRetrospective(Retrospective retrospective)
         {
-            foreach (RetroColumn retroColumn in retrospective.RetroColumns)
+            if (retrospective.Id == 0)
             {
-                foreach (RetroCard retroCard in retroColumn.RetroCards)
-                {
-                    _context.RetroCards.Add(retroCard);
-                }
+                _context.Retrospectives.Add(retrospective);
+            }
+            else
+            {
+                Retrospective dbEntry = _context.Retrospectives
+                    .FirstOrDefault(c => c.Id == retrospective.Id);
 
-                _context.RetroColumns.Add(retroColumn);
+                if (dbEntry != null) {
+                    dbEntry.Title = retrospective.Title;
+                    dbEntry.CreatedDate = retrospective.CreatedDate;
+                    dbEntry.Description = retrospective.Description;
+                    dbEntry.RetroUserId = retrospective.RetroUserId;
+
+                    foreach (RetroColumn r in retrospective.RetroColumns) {
+                        this.SaveRetroColumn(r);
+                    }
+                }
             }
 
-            _context.Retrospectives.Add(retrospective);
             _context.SaveChanges();
         }
 
         public void CleanRetrospective(Retrospective retrospective)
         {
-            
-
             foreach (var rc in retrospective.RetroColumns)
             {
 	            foreach (var rf in rc.RetroFamilies.ToList())
