@@ -3,12 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
 using Microsoft.AspNetCore.Authorization;
-using System.IdentityModel.Tokens.Jwt;
-using System;
 using Retrospective_Back_End.Utils;
 
 namespace Retrospective_Back_End.Controllers
@@ -18,12 +15,12 @@ namespace Retrospective_Back_End.Controllers
     public class RetrospectivesController : ControllerBase
     {
         private readonly IRetroRespectiveRepository _context;
-        private readonly IDecoder decoder;
+        private readonly IDecoder _decoder;
 
         public RetrospectivesController(IRetroRespectiveRepository context, IDecoder decoder)
         {
             _context = context;
-            this.decoder = decoder;
+            this._decoder = decoder;
         }
 
         /// <summary>
@@ -33,7 +30,7 @@ namespace Retrospective_Back_End.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Retrospective>>> GetRetrospectives()
         {
-            return await Task.FromResult(_context.getAll().ToList());
+            return await Task.FromResult(_context.GetAll().ToList());
         }
 
         /// <summary>
@@ -55,7 +52,7 @@ namespace Retrospective_Back_End.Controllers
                 {
                     foreach (RetroCard i in r.RetroCards)
                     {
-                        RetroCard c = (RetroCard)i;
+                        RetroCard c = i;
                         if (c.RetroFamily != null)
                         {
                             removedRetroCards.Add(i);
@@ -117,7 +114,7 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
-            var id = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+            var id = _decoder.DecodeToken(Request?.Headers["token"].ToString());
 
             if (id != null)
             {

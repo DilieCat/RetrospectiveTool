@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Retrospective_Back_End.Models;
 using Retrospective_Core.Models;
-using Retrospective_Core.Services;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -19,17 +15,11 @@ namespace Retrospective_Back_End.Controllers
     [ApiController]
     public class RetroUsersController : ControllerBase
     {
-        private readonly UserManager<RetroUser> userManager;
-        private readonly SignInManager<RetroUser> signInManager;
-        private IRetroRespectiveRepository _repo;
+        private readonly UserManager<RetroUser> _userManager;
 
-        public RetroUsersController(UserManager<RetroUser> userMgr,
-            SignInManager<RetroUser> signInMgr,
-            IRetroRespectiveRepository repo)
+        public RetroUsersController(UserManager<RetroUser> userMgr)
         {
-            userManager = userMgr;
-            signInManager = signInMgr;
-            _repo = repo;
+            _userManager = userMgr;
         }
 
 
@@ -49,7 +39,7 @@ namespace Retrospective_Back_End.Controllers
                     LockoutEnabled = false
                 };
 
-                var result = await userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
@@ -67,17 +57,15 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] RegistrationModel model)
         {
-            RetroUser user = await userManager.FindByEmailAsync(model.Email);
+            RetroUser user = await _userManager.FindByEmailAsync(model.Email);
 
-            if (user != null && await userManager.CheckPasswordAsync(user, model.Password))
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var authClaims = new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
-
-                var authSigninKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SecureKey"));
 
                 var token = new JwtSecurityToken(
                     claims: authClaims,
@@ -97,7 +85,7 @@ namespace Retrospective_Back_End.Controllers
 
         private bool IsValid(string s)
         {
-            return s != null && s.Length != 0;
+            return !string.IsNullOrEmpty(s);
         }
     }
 }

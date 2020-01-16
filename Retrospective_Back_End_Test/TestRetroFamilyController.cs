@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Castle.Core.Internal;
 using Microsoft.AspNetCore.SignalR;
 using Moq;
 using Retrospective_Back_End.Controllers;
@@ -90,7 +90,7 @@ namespace Retrospective_Back_End_Test
 
             //Assert
             Assert.True(retroFamilies.Any());
-            Assert.True(retroFamilies.Count() == 1);
+            Assert.True(retroFamilies.Count == 1);
             Assert.True(retroFamilies.ElementAt(0).Content.Equals("Wow!"));
         }
 
@@ -129,7 +129,7 @@ namespace Retrospective_Back_End_Test
 
             //Assert
             Assert.False(retroFamilies.Any());
-            Assert.Equal(0,retroFamilies.Count());
+            Assert.True(retroFamilies.IsNullOrEmpty());
         }
 
         [Fact]
