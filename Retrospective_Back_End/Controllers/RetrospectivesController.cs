@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System;
 using Retrospective_Back_End.Utils;
+using Microsoft.AspNetCore.SignalR;
+using Retrospective_Back_End.Realtime;
 
 namespace Retrospective_Back_End.Controllers
 {
@@ -19,11 +21,13 @@ namespace Retrospective_Back_End.Controllers
     {
         private readonly IRetroRespectiveRepository _context;
         private readonly IDecoder decoder;
+        private readonly IHubContext<NotifyHub, ITypedHubClient> hubContext;
 
-        public RetrospectivesController(IRetroRespectiveRepository context, IDecoder decoder)
+        public RetrospectivesController(IRetroRespectiveRepository context, IDecoder decoder, IHubContext<NotifyHub, ITypedHubClient> signlar)
         {
             _context = context;
             this.decoder = decoder;
+            hubContext = signlar;
         }
 
         /// <summary>
@@ -33,7 +37,7 @@ namespace Retrospective_Back_End.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Retrospective>>> GetRetrospectives()
         {
-            var id = decoder.DecodeToken(Request != null ? Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null : null);
+            var id = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
 
             if (id == null)
             {
@@ -102,6 +106,18 @@ namespace Retrospective_Back_End.Controllers
 
             _context.SaveRetrospective(retrospective);
 
+            if (hubContext.Clients != null)
+            {
+                try
+                {
+                    hubContext.Clients.All.BroadcastMessage(true, retrospective.Id);
+                }
+                catch (Exception e)
+                {
+                    hubContext.Clients.All.BroadcastMessage(false, retrospective.Id);
+                }
+            }
+
             return NoContent();
         }
 
@@ -150,6 +166,18 @@ namespace Retrospective_Back_End.Controllers
 
 
             _context.RemoveRetrospective(retrospective);
+
+            if (hubContext.Clients != null)
+            {
+                try
+                {
+                    hubContext.Clients.All.BroadcastMessage(true, id);
+                }
+                catch (Exception e)
+                {
+                    hubContext.Clients.All.BroadcastMessage(false, id);
+                }
+            }
 
             return retrospective;
         }
