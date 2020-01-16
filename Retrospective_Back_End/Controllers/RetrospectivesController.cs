@@ -40,7 +40,7 @@ namespace Retrospective_Back_End.Controllers
                 return Unauthorized();
             }
 
-            return await Task.FromResult(_context.getAll().Where(x => x.RetroUserId == int.Parse(id)).ToList());
+            return await Task.FromResult(_context.GetAll().Where(x => x.RetroUserId == int.Parse(id)).ToList());
         }
 
         /// <summary>
