@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Retrospective_Core.Models;
 
 namespace Retrospective_Core.Services
@@ -22,6 +20,6 @@ namespace Retrospective_Core.Services
 	    void RemoveRetrospective(Retrospective retrospective);
 		void CleanRetrospective(Retrospective retrospective);
 
-		IQueryable<Retrospective> getAll();
+		IQueryable<Retrospective> GetAll();
     }
 }

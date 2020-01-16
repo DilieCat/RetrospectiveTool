@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Retrospective_Back_End.Realtime;
 using Retrospective_Core.Models;
 using Retrospective_Core.Services;
@@ -17,7 +15,7 @@ namespace Retrospective_Back_End.Controllers
     public class RetroCardsController : ControllerBase
     {
         private readonly IRetroRespectiveRepository _context;
-		private IHubContext<NotifyHub, ITypedHubClient> _hubContext;
+		private readonly IHubContext<NotifyHub, ITypedHubClient> _hubContext;
 
 		public RetroCardsController(IRetroRespectiveRepository context, IHubContext<NotifyHub, ITypedHubClient> hubContext)
         {
@@ -70,13 +68,11 @@ namespace Retrospective_Back_End.Controllers
 	            {
 		            _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
 	            }
-	            catch (Exception e)
+	            catch
 	            {
 		            _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
 	            }
             }
-
-            RetroCard r = _context.RetroCards.FirstOrDefault(x => x.Id == retroCard.Id);
 
             return retroCard;
         }
@@ -98,7 +94,7 @@ namespace Retrospective_Back_End.Controllers
 	            {
 		            _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
 	            }
-	            catch (Exception e)
+	            catch
 	            {
 		            _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
 	            }
@@ -130,18 +126,13 @@ namespace Retrospective_Back_End.Controllers
 	            {
 		            _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
 	            }
-	            catch (Exception e)
+	            catch
 	            {
 		            _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
 	            }
             }
 
             return retroCard;
-        }
-
-        private bool RetroCardExists(int id)
-        {
-            return _context.RetroCards.Any(e => e.Id == id);
         }
     }
 }

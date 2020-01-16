@@ -3,27 +3,26 @@ using System.Collections.Generic;
 using Moq;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Retrospective_Back_End.Controllers;
 using Xunit;
 using Retrospective_Core.Services;
 using Retrospective_Core.Models;
-using Xunit.Abstractions;
 using Assert = Xunit.Assert;
 using Retrospective_Back_End.Utils;
+using Microsoft.AspNetCore.SignalR;
+using Retrospective_Back_End.Realtime;
 
 namespace Retrospective_Back_End_Test
 {
     public class TestRetrospectiveController
     {
-        private readonly ITestOutputHelper _testOutputHelper;
         readonly Mock<IRetroRespectiveRepository> _mockRetrospectiveRepo;
         readonly IList<Retrospective> _retrospectives;
+        private readonly Mock<IHubContext<NotifyHub, ITypedHubClient>> _hubContext;
         readonly Mock<IDecoder> _decoderMock = new Mock<IDecoder>();
 
-        public TestRetrospectiveController(ITestOutputHelper testOutputHelper)
+        public TestRetrospectiveController()
         {
-            _testOutputHelper = testOutputHelper;
             this._mockRetrospectiveRepo = new Mock<IRetroRespectiveRepository>();
             this._retrospectives = new List<Retrospective>()
             {
@@ -55,30 +54,32 @@ namespace Retrospective_Back_End_Test
                     Description = "Dit is board 2"
                 }
             };
-        }
 
-      /*  [Fact]
-        public async void GetAllRetrospectives()
-        {
-            //Arrange
-            _mockRetrospectiveRepo.Setup(m => m.getAll()).Returns(_retrospectives.AsQueryable());
-            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
+            this._hubContext = new Mock<IHubContext<NotifyHub, ITypedHubClient>>();
+    }
 
-            //Act
-            var result = await controller.GetRetrospectives();
+        /*  [Fact]
+          public async void GetAllRetrospectives()
+          {
+              //Arrange
+              _mockRetrospectiveRepo.Setup(m => m.GetAll()).Returns(_retrospectives.AsQueryable());
+              var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
 
-            //Assert
-            var test = result.Value.FirstOrDefault()?.Title;
-            Assert.True(test != null && test.Equals("Board 1"));
-            Assert.Equal(2, _retrospectives.Count());
-        }
-        */
+              //Act
+              var result = await controller.GetRetrospectives();
+
+              //Assert
+              var test = result.Value.FirstOrDefault()?.Title;
+              Assert.True(test != null && test.Equals("Board 1"));
+              Assert.Equal(2, _retrospectives.Count());
+          }
+          */
 
         [Fact]
         public void PostRetrospective_ShouldCreateThreeColumns()
         {
             //arrange
-            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
+            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object, _hubContext.Object);
 
             _decoderMock.Setup(x => x.DecodeToken(It.IsAny<string>())).Returns("1");
 
@@ -96,19 +97,19 @@ namespace Retrospective_Back_End_Test
 
             Assert.True(result?.Value is Retrospective);
 
-            if (result?.Value is Retrospective retroResult)
+            if (result.Value is Retrospective retroResult)
             {
-	            Assert.Equal(retrospective.Title, retroResult.Title);
-	            Assert.Equal(3, retroResult.RetroColumns.Count);
+                Assert.Equal(retrospective.Title, retroResult.Title);
+                Assert.Equal(3, retroResult.RetroColumns.Count);
 
-	            RetroColumn retroColumn = retroResult.RetroColumns.FirstOrDefault(r => r.Title == "To do");
-	            Assert.Equal("To do", retroColumn.Title);
+                RetroColumn retroColumn = retroResult.RetroColumns.FirstOrDefault(r => r.Title == "To do");
+                Assert.Equal("To do", retroColumn.Title);
 
-	            retroColumn = retroResult.RetroColumns.FirstOrDefault(r => r.Title == "Doing");
-	            Assert.Equal("Doing", retroColumn.Title);
+                retroColumn = retroResult.RetroColumns.FirstOrDefault(r => r.Title == "Doing");
+                Assert.Equal("Doing", retroColumn.Title);
 
                 retroColumn = retroResult.RetroColumns.FirstOrDefault(r => r.Title == "Done");
-	            Assert.Equal("Done", retroColumn.Title);
+                Assert.Equal("Done", retroColumn.Title);
             }
         }
 
@@ -126,12 +127,12 @@ namespace Retrospective_Back_End_Test
             }
 
             _mockRetrospectiveRepo.Setup(m => m.Retrospectives).Returns(_retrospectives.AsQueryable());
-            _mockRetrospectiveRepo.Setup(r => r.CleanRetrospective(It.IsAny<Retrospective>())).Callback((Action<Retrospective>) Action);
+            _mockRetrospectiveRepo.Setup(r => r.CleanRetrospective(It.IsAny<Retrospective>())).Callback((Action<Retrospective>)Action);
             _decoderMock.Setup(x => x.DecodeToken(It.IsAny<string>())).Returns("1");
-            
-            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object);
 
-           
+            var controller = new RetrospectivesController(_mockRetrospectiveRepo.Object, _decoderMock.Object, _hubContext.Object);
+
+
 
 
             //Act
@@ -142,8 +143,8 @@ namespace Retrospective_Back_End_Test
             int retroFamiliesSize = 0;
             foreach (var retroCard in _retrospectives.FirstOrDefault().RetroColumns)
             {
-                retroCardsSize += retroCard.RetroCards.Count();
-                retroFamiliesSize += retroCard.RetroFamilies.Count();
+                retroCardsSize += retroCard.RetroCards.Count;
+                retroFamiliesSize += retroCard.RetroFamilies.Count;
             }
 
             Assert.Equal(0, retroCardsSize);

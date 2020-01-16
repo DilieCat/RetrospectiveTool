@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +23,7 @@ namespace Retrospective_EFSQLRetrospectiveDbImpl
 
         public IQueryable<RetroFamily> RetroFamilies => _context.RetroFamilies;
 
-        public IQueryable<Retrospective> getAll()
+        public IQueryable<Retrospective> GetAll()
         {
             IList<Retrospective> retrospectives =  _context.Retrospectives.Include(c => c.RetroColumns).ThenInclude(s => s.RetroCards).Include(x => x.RetroColumns).ThenInclude(x => x.RetroFamilies).ThenInclude(x => x.RetroCards).ToList();
             ICollection<RetroCard> removedRetroCards = new List<RetroCard>();

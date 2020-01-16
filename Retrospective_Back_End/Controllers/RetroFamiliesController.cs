@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +18,10 @@ namespace Retrospective_Back_End.Controllers
         private readonly IRetroRespectiveRepository _repo;
         private readonly IHubContext<NotifyHub, ITypedHubClient> _hubContext;
 
-        public RetroFamiliesController(IRetroRespectiveRepository repo, IHubContext<NotifyHub, ITypedHubClient> Context)
+        public RetroFamiliesController(IRetroRespectiveRepository repo, IHubContext<NotifyHub, ITypedHubClient> context)
         {
             this._repo = repo;
-            this._hubContext = Context;
+            this._hubContext = context;
         }
 
         /// <summary>
@@ -68,7 +67,7 @@ namespace Retrospective_Back_End.Controllers
                 {
                     _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
                 }
@@ -94,7 +93,7 @@ namespace Retrospective_Back_End.Controllers
                 {
                     _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
                 }
-                catch (Exception e)
+                catch
                 {
                     _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
                 }
@@ -125,7 +124,7 @@ namespace Retrospective_Back_End.Controllers
                     {
                         _hubContext.Clients.All.BroadcastMessage(true, retroColumn.RetrospectiveId);
                     }
-                    catch (Exception e)
+                    catch
                     {
                         _hubContext.Clients.All.BroadcastMessage(false, retroColumn.RetrospectiveId);
                     }

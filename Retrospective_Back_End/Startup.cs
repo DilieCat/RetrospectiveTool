@@ -47,7 +47,7 @@ namespace Retrospective_Back_End
 
             });
             services.AddSignalR();
-            _ = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc(option => option.EnableEndpointRouting = false);
             services.AddDbContext<RetroSpectiveDbContext>(options =>
 	            options.UseSqlServer(
