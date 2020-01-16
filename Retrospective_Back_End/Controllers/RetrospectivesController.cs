@@ -112,7 +112,8 @@ namespace Retrospective_Back_End.Controllers
         [HttpPost]
         public ActionResult<Retrospective> PostRetrospective(Retrospective retrospective)
         {
-            var id = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+            var id = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
 
             if (id != null)
             {
@@ -139,7 +140,7 @@ namespace Retrospective_Back_End.Controllers
         {
             var retrospective = _context.Retrospectives.First(r => r.Id == id);
 
-            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
 
             if (retrospective == null)
                 return NotFound();
@@ -173,7 +174,8 @@ namespace Retrospective_Back_End.Controllers
                 .ThenInclude(x => x.RetroCards)
                 .FirstOrDefault(r => r.Id == id);
 
-            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
 
             if (retrospective == null)
                 return NotFound();

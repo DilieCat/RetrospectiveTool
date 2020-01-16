@@ -89,7 +89,7 @@ namespace Retrospective_Back_End.Controllers
         {
             Retrospective retrospective = _context.Retrospectives.First(x => x.Id == retroColumn.RetrospectiveId);
 
-            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
 
             if (retrospective == null && retroColumn != null)
                 return NotFound();
@@ -126,7 +126,8 @@ namespace Retrospective_Back_End.Controllers
 
             Retrospective retrospective = _context.Retrospectives.First(x => x.Id == retroColumn.RetrospectiveId);
 
-            var decodedId = decoder.DecodeToken(Request != null ? Request.Headers["token"].ToString() : null);
+            var decodedId = decoder.DecodeToken(Request != null ? (Request.Headers.ContainsKey("token") ? Request.Headers["token"].ToString() : null) : null);
+
 
             if (retrospective == null && retroColumn != null)
                 return NotFound();

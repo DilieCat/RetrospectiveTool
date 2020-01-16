@@ -11,7 +11,7 @@ namespace Retrospective_Back_End.Utils
 
         public string DecodeToken(string token)
         {
-            if (token == null)
+            if (token == null || token.Length == 0)
                 return null; 
 
             var handler = new JwtSecurityTokenHandler();
